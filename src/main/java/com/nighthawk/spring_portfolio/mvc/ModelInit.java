@@ -8,13 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.nighthawk.spring_portfolio.mvc.jokes.Jokes;
 import com.nighthawk.spring_portfolio.mvc.jokes.JokesJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.leaderboard.Leaderboard;
+import com.nighthawk.spring_portfolio.mvc.leaderboard.LeaderboardJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.note.Note;
 import com.nighthawk.spring_portfolio.mvc.note.NoteJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.person.Person;
 import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
+import com.nighthawk.spring_portfolio.mvc.quiz.Quiz;
+import com.nighthawk.spring_portfolio.mvc.quiz.QuizJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.spacebook.SpacebookJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.usr.Usr;
 import com.nighthawk.spring_portfolio.mvc.usr.UsrDetailsService;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -24,6 +30,12 @@ public class ModelInit {
     @Autowired NoteJpaRepository noteRepo;
     @Autowired PersonDetailsService personService;
     @Autowired UsrDetailsService usrService;
+    @Autowired
+    LeaderboardJpaRepository leaderboardRepo;
+    @Autowired
+    SpacebookJpaRepository spacebookRepo;
+    @Autowired
+    QuizJpaRepository quizRepo;
 
     @Bean
     CommandLineRunner run() {  // The run() method will be executed after the application starts
@@ -59,6 +71,24 @@ public class ModelInit {
                 List<Usr> usrFound = usrService.list(usr.getName(), usr.getEmail());  // lookup
                 if (usrFound.size() == 0) {
                     usrService.save(usr);  // save               
+                }
+            }
+
+
+            HashMap<String, Integer> leaderboardHash = Leaderboard.init();
+            for (String leaderboard : leaderboardHash.keySet()) {
+                List<Leaderboard> leaderboardFound = leaderboardRepo.findByLeaderboardIgnoreCase(leaderboard);
+                if (leaderboardFound.size() == 0)
+                    leaderboardRepo.save(new Leaderboard(null, leaderboard, leaderboardHash.get(leaderboard)));
+            }
+
+            List<String> questionList = Quiz.init();
+            for (String question : questionList) {
+                List<Quiz> quizFound = quizRepo.findByQuestionIgnoreCase(question);
+                if (quizFound.size() == 0) {
+                    Quiz newQuiz = new Quiz();
+                    newQuiz.setQuestion(question);
+                    quizRepo.save(newQuiz);
                 }
             }
         };
